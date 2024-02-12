@@ -472,32 +472,44 @@ resource "aws_iam_role_policy_attachment" "external_dns" {
 data "aws_iam_policy_document" "external_secrets" {
   count = var.create_role && var.attach_external_secrets_policy ? 1 : 0
 
-  statement {
-    actions   = ["ssm:DescribeParameters"]
-    resources = ["*"]
+  dynamic "statement" {
+    for_each = length(var.external_secrets_ssm_parameter_arns) > 0 ? [1] : []
+    content {
+      actions   = ["ssm:DescribeParameters"]
+      resources = ["*"]
+    }
   }
 
-  statement {
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-    ]
-    resources = var.external_secrets_ssm_parameter_arns
+  dynamic "statement" {
+    for_each = length(var.external_secrets_ssm_parameter_arns) > 0 ? [1] : []
+    content {
+      actions = [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+      ]
+      resources = var.external_secrets_ssm_parameter_arns
+    }
   }
 
-  statement {
-    actions   = ["secretsmanager:ListSecrets"]
-    resources = ["*"]
+  dynamic "statement" {
+    for_each = length(var.external_secrets_secrets_manager_arns) > 0 ? [1] : []
+    content {
+      actions   = ["secretsmanager:ListSecrets"]
+      resources = ["*"]
+    }
   }
 
-  statement {
-    actions = [
-      "secretsmanager:GetResourcePolicy",
-      "secretsmanager:GetSecretValue",
-      "secretsmanager:DescribeSecret",
-      "secretsmanager:ListSecretVersionIds",
-    ]
-    resources = var.external_secrets_secrets_manager_arns
+  dynamic "statement" {
+    for_each = length(var.external_secrets_secrets_manager_arns) > 0 ? [1] : []
+    content {
+      actions = [
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:ListSecretVersionIds",
+      ]
+      resources = var.external_secrets_secrets_manager_arns
+    }
   }
 
   statement {
